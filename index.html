@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Puzzle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .puzzle-container {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .tile {
+            background-color: #007bff;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tile.correct {
+            background-color: #28a745;
+        }
+
+        .tile.wrong {
+            background-color: #dc3545;
+        }
+
+        .result {
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="puzzle-container">
+        <h1>Find the Lucky Number</h1>
+        <p>Click on the tile with the number <strong>7</strong>!</p>
+        <div class="grid">
+            <div class="tile" data-value="3">3</div>
+            <div class="tile" data-value="7">7</div>
+            <div class="tile" data-value="5">5</div>
+            <div class="tile" data-value="1">1</div>
+            <div class="tile" data-value="9">9</div>
+            <div class="tile" data-value="7">7</div>
+            <div class="tile" data-value="6">6</div>
+            <div class="tile" data-value="4">4</div>
+            <div class="tile" data-value="8">8</div>
+        </div>
+        <div class="result hidden">You won!</div>
+    </div>
+
+    <script>
+        const tiles = document.querySelectorAll('.tile');
+        const result = document.querySelector('.result');
+
+        tiles.forEach(tile => {
+            tile.addEventListener('click', () => {
+                if (tile.dataset.value === '7') {
+                    tile.classList.add('correct');
+                    result.textContent = 'Congratulations! You found the lucky number!';
+                    result.classList.remove('hidden');
+                } else {
+                    tile.classList.add('wrong');
+                    result.textContent = 'Oops! Try again.';
+                    result.classList.remove('hidden');
+                }
+
+                // Disable further clicks
+                tiles.forEach(t => t.style.pointerEvents = 'none');
+            });
+        });
+    </script>
+</body>
+</html>
