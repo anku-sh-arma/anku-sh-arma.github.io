@@ -72,15 +72,15 @@
 </head>
 <body>
     <div class="puzzle-container">
-        <h1>Find the Lucky Number</h1>
-        <p>Click on the tile with the number <strong>7</strong>!</p>
+        <h1>Decipher the Clue!</h1>
+        <p>Solve this riddle to find the correct tile: <em>I am the smallest prime number after 5. Click on me!</em></p>
         <div class="grid">
             <div class="tile" data-value="3">3</div>
             <div class="tile" data-value="7">7</div>
             <div class="tile" data-value="5">5</div>
-            <div class="tile" data-value="1">1</div>
-            <div class="tile" data-value="9">9</div>
-            <div class="tile" data-value="7">7</div>
+            <div class="tile" data-value="11">11</div>
+            <div class="tile" data-value="13">13</div>
+            <div class="tile" data-value="17">17</div>
             <div class="tile" data-value="6">6</div>
             <div class="tile" data-value="4">4</div>
             <div class="tile" data-value="8">8</div>
@@ -96,11 +96,11 @@
             tile.addEventListener('click', () => {
                 if (tile.dataset.value === '7') {
                     tile.classList.add('correct');
-                    result.textContent = 'Congratulations! You found the lucky number!';
+                    result.textContent = 'Congratulations! You solved the riddle!';
                     result.classList.remove('hidden');
                 } else {
                     tile.classList.add('wrong');
-                    result.textContent = 'Oops! Try again.';
+                    result.textContent = 'Oops! That's not correct. Try again.';
                     result.classList.remove('hidden');
                 }
 
