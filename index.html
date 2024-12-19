@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Match Madness</title>
+    <title>Fix the Code - iOS Developer Puzzle</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(45deg, #ff6ec7, #ff3f58);
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
             color: #fff;
             display: flex;
             justify-content: center;
@@ -15,47 +15,40 @@
             height: 100vh;
             margin: 0;
             flex-direction: column;
-            overflow: hidden;
         }
 
         h1 {
-            font-size: 3rem;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
             text-align: center;
-            margin-bottom: 30px;
             font-family: 'Comic Sans MS', cursive;
         }
 
-        .timer {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-        }
-
         .puzzle-container {
-            background-color: #fff;
-            border-radius: 15px;
+            background-color: #1e1e1e;
             padding: 30px;
+            border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             text-align: center;
             width: 80%;
-            max-width: 400px;
-            color: #333;
+            max-width: 600px;
         }
 
-        .word {
-            font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 30px;
-            transition: transform 0.3s;
+        .code {
+            font-size: 1.5rem;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            color: #dcdcdc;
+            margin-bottom: 20px;
+            overflow: auto;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-family: 'Courier New', monospace;
         }
 
-        .word.incorrect {
-            transform: scale(1.1);
-            color: #dc3545;
-        }
-
-        .buttons {
-            display: flex;
-            justify-content: space-around;
+        .options {
+            margin-top: 20px;
         }
 
         .btn {
@@ -67,6 +60,7 @@
             border-radius: 10px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            margin: 10px;
         }
 
         .btn:hover {
@@ -77,124 +71,82 @@
             transform: scale(0.95);
         }
 
-        .result {
-            font-size: 1.5rem;
-            margin-top: 30px;
-            transition: opacity 0.3s ease;
-            opacity: 0;
+        .feedback {
+            font-size: 1.2rem;
+            margin-top: 20px;
+            color: #f39c12;
+            display: none;
         }
 
-        .result.show {
-            opacity: 1;
+        .result {
+            font-size: 1.5rem;
+            margin-top: 20px;
         }
 
         .hidden {
             display: none;
         }
+
     </style>
 </head>
 <body>
-    <h1>Color Match Madness!</h1>
+    <h1>Fix the Code: iOS Developer Challenge</h1>
     <div class="puzzle-container">
-        <div class="timer" id="timer">Time Left: 30s</div>
-        <div class="word" id="word">Loading...</div>
-        <div class="buttons">
-            <button class="btn" id="btn-red" data-color="red">Red</button>
-            <button class="btn" id="btn-green" data-color="green">Green</button>
-            <button class="btn" id="btn-blue" data-color="blue">Blue</button>
+        <div class="code" id="codeSnippet">
+            // Swift function to calculate the square of a number
+            func calculateSquare(of number: Int) -> Int {
+                return number * number
+            }
         </div>
-        <div class="result hidden" id="result">Oops! Try again!</div>
+
+        <div class="options">
+            <button class="btn" data-answer="correct">Fix: Add missing return statement</button>
+            <button class="btn" data-answer="incorrect">Fix: Remove the return type</button>
+            <button class="btn" data-answer="incorrect">Fix: Add missing braces</button>
+        </div>
+
+        <div class="feedback" id="feedback">Oops! Try again, something's wrong.</div>
+        <div class="result hidden" id="result"></div>
     </div>
 
     <script>
-        const colors = ['red', 'green', 'blue'];
-        const words = ['Red', 'Green', 'Blue'];
-        let currentWord = '';
-        let currentColor = '';
-        let timer = 30;
-        let interval;
-        
-        const wordElement = document.getElementById('word');
-        const resultElement = document.getElementById('result');
-        const timerElement = document.getElementById('timer');
-        const btnRed = document.getElementById('btn-red');
-        const btnGreen = document.getElementById('btn-green');
-        const btnBlue = document.getElementById('btn-blue');
+        const codeSnippet = document.getElementById("codeSnippet");
+        const feedback = document.getElementById("feedback");
+        const result = document.getElementById("result");
+        const options = document.querySelectorAll(".btn");
 
-        function startGame() {
-            resetGame();
-            loadNewWord();
-            startTimer();
-        }
+        // Correct answer
+        const correctAnswer = "correct";
 
-        function resetGame() {
-            timer = 30;
-            resultElement.classList.add('hidden');
-            timerElement.textContent = `Time Left: ${timer}s`;
-            resultElement.textContent = "Oops! Try again!";
-            clearInterval(interval);
-            resultElement.classList.remove('show');
-            enableButtons(true);
-        }
+        options.forEach(option => {
+            option.addEventListener("click", (e) => {
+                const answer = e.target.getAttribute("data-answer");
 
-        function loadNewWord() {
-            const wordIndex = Math.floor(Math.random() * words.length);
-            const colorIndex = Math.floor(Math.random() * colors.length);
-
-            currentWord = words[wordIndex];
-            currentColor = colors[colorIndex];
-
-            wordElement.textContent = currentWord;
-            wordElement.style.color = currentColor;
-        }
-
-        function startTimer() {
-            interval = setInterval(() => {
-                if (timer > 0) {
-                    timer--;
-                    timerElement.textContent = `Time Left: ${timer}s`;
+                if (answer === correctAnswer) {
+                    feedback.style.display = "none";
+                    result.textContent = "Correct! The missing return statement was necessary.";
+                    result.classList.remove("hidden");
+                    codeSnippet.textContent = `
+                        // Swift function to calculate the square of a number
+                        func calculateSquare(of number: Int) -> Int {
+                            return number * number
+                        }
+                    `;
+                    result.style.color = "#28a745"; // Green for correct answer
                 } else {
-                    endGame();
+                    feedback.style.display = "block";
+                    result.classList.add("hidden");
+
+                    if (answer === "incorrect") {
+                        feedback.textContent = "Oops! Something went wrong. Try again!";
+                    } else {
+                        feedback.textContent = "Hmm, that's not it! Keep trying!";
+                    }
+
+                    feedback.style.color = "#dc3545"; // Red for incorrect answers
                 }
-            }, 1000);
-        }
-
-        function endGame() {
-            enableButtons(false);
-            resultElement.classList.remove('hidden');
-            resultElement.textContent = "Time's up! You failed to match the colors.";
-            resultElement.classList.add('show');
-        }
-
-        function enableButtons(enable) {
-            btnRed.disabled = !enable;
-            btnGreen.disabled = !enable;
-            btnBlue.disabled = !enable;
-        }
-
-        function checkAnswer(color) {
-            if (color === currentColor) {
-                resultElement.textContent = "Great job! Correct answer!";
-                resultElement.classList.add('show');
-                setTimeout(() => {
-                    loadNewWord();
-                    resultElement.classList.remove('show');
-                }, 1000);
-            } else {
-                wordElement.classList.add('incorrect');
-                setTimeout(() => {
-                    wordElement.classList.remove('incorrect');
-                }, 500);
-                resultElement.classList.remove('hidden');
-                resultElement.classList.add('show');
-            }
-        }
-
-        btnRed.addEventListener('click', () => checkAnswer('red'));
-        btnGreen.addEventListener('click', () => checkAnswer('green'));
-        btnBlue.addEventListener('click', () => checkAnswer('blue'));
-
-        startGame(); // Start the game immediately when the page loads
+            });
+        });
     </script>
 </body>
 </html>
