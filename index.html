@@ -35,6 +35,10 @@
             margin-top: 20px;
             text-align: center;
         }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -71,10 +75,13 @@
             if (checkFoodCollision()) {
                 score += 10; // Increase score by 10 points
                 document.getElementById("score").textContent = score;
+
                 if (score >= 100) {
                     winGame();
+                } else {
+                    increaseSpeed(); // Increase speed after eating food
+                    food = generateFood(); // Re-generate food after eating
                 }
-                food = generateFood(); // Re-generate food after eating
             }
             drawGame();
         }
@@ -126,11 +133,22 @@
             return false;
         }
 
-        // Generate a random position for the food
+        // Generate a random position for the food in one of the corners
         function generateFood() {
-            let foodX = Math.floor(Math.random() * (canvasSize / blockSize)) * blockSize;
-            let foodY = Math.floor(Math.random() * (canvasSize / blockSize)) * blockSize;
-            return { x: foodX, y: foodY };
+            const corners = [
+                { x: 0, y: 0 },
+                { x: 0, y: canvasSize - blockSize },
+                { x: canvasSize - blockSize, y: 0 },
+                { x: canvasSize - blockSize, y: canvasSize - blockSize }
+            ];
+            return corners[Math.floor(Math.random() * corners.length)];
+        }
+
+        // Increase the speed by 10%
+        function increaseSpeed() {
+            gameSpeed *= 0.9; // Increase speed by 10%
+            clearInterval(gameInterval); // Clear the current interval
+            gameInterval = setInterval(updateGame, gameSpeed); // Set new interval with updated speed
         }
 
         // Change the direction based on arrow keys
