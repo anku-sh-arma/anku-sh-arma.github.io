@@ -3,67 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creative Puzzle</title>
+    <title>Color Match Madness</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(45deg, #ff6ec7, #ff3f58);
+            color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-        }
-
-        .puzzle-container {
-            background: white;
-            border: 2px solid #333;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
+            margin: 0;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         h1 {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 30px;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        .timer {
             font-size: 1.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 20px;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 20px 0;
+        .puzzle-container {
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 80%;
+            max-width: 400px;
+            color: #333;
         }
 
-        .tile {
-            background-color: #007bff;
-            color: white;
-            font-size: 1.2rem;
+        .word {
+            font-size: 3rem;
             font-weight: bold;
-            padding: 20px;
-            cursor: pointer;
-            border-radius: 5px;
+            margin-bottom: 30px;
+            transition: transform 0.3s;
+        }
+
+        .word.incorrect {
+            transform: scale(1.1);
+            color: #dc3545;
+        }
+
+        .buttons {
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: space-around;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
             transition: background-color 0.3s ease;
         }
 
-        .tile.correct {
-            background-color: #28a745;
+        .btn:hover {
+            background-color: #218838;
         }
 
-        .tile.wrong {
-            background-color: #dc3545;
+        .btn:active {
+            transform: scale(0.95);
         }
 
         .result {
-            font-size: 1.2rem;
-            margin-top: 20px;
+            font-size: 1.5rem;
+            margin-top: 30px;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .result.show {
+            opacity: 1;
         }
 
         .hidden {
@@ -72,46 +94,107 @@
     </style>
 </head>
 <body>
+    <h1>Color Match Madness!</h1>
     <div class="puzzle-container">
-        <h1>Decipher the Clue!</h1>
-        <p>Solve this riddle to find the correct tile: <em>I am the smallest prime number after 5. Click on me!</em></p>
-        <div class="grid">
-            <div class="tile" data-value="3">3</div>
-            <div class="tile" data-value="7">7</div>
-            <div class="tile" data-value="5">5</div>
-            <div class="tile" data-value="11">11</div>
-            <div class="tile" data-value="13">13</div>
-            <div class="tile" data-value="17">17</div>
-            <div class="tile" data-value="6">6</div>
-            <div class="tile" data-value="4">4</div>
-            <div class="tile" data-value="8">8</div>
+        <div class="timer" id="timer">Time Left: 30s</div>
+        <div class="word" id="word">Loading...</div>
+        <div class="buttons">
+            <button class="btn" id="btn-red" data-color="red">Red</button>
+            <button class="btn" id="btn-green" data-color="green">Green</button>
+            <button class="btn" id="btn-blue" data-color="blue">Blue</button>
         </div>
-        <div class="result hidden">You won!</div>
+        <div class="result hidden" id="result">Oops! Try again!</div>
     </div>
 
     <script>
-        const grid = document.querySelector('.grid');
-        const result = document.querySelector('.result');
+        const colors = ['red', 'green', 'blue'];
+        const words = ['Red', 'Green', 'Blue'];
+        let currentWord = '';
+        let currentColor = '';
+        let timer = 30;
+        let interval;
+        
+        const wordElement = document.getElementById('word');
+        const resultElement = document.getElementById('result');
+        const timerElement = document.getElementById('timer');
+        const btnRed = document.getElementById('btn-red');
+        const btnGreen = document.getElementById('btn-green');
+        const btnBlue = document.getElementById('btn-blue');
 
-        grid.addEventListener('click', (event) => {
-            const tile = event.target;
+        function startGame() {
+            resetGame();
+            loadNewWord();
+            startTimer();
+        }
 
-            // Check if the clicked element is a tile
-            if (tile.classList.contains('tile')) {
-                if (tile.dataset.value === '7') {
-                    tile.classList.add('correct');
-                    result.textContent = 'Congratulations! You solved the riddle!';
-                    result.classList.remove('hidden');
+        function resetGame() {
+            timer = 30;
+            resultElement.classList.add('hidden');
+            timerElement.textContent = `Time Left: ${timer}s`;
+            resultElement.textContent = "Oops! Try again!";
+            clearInterval(interval);
+            resultElement.classList.remove('show');
+            enableButtons(true);
+        }
+
+        function loadNewWord() {
+            const wordIndex = Math.floor(Math.random() * words.length);
+            const colorIndex = Math.floor(Math.random() * colors.length);
+
+            currentWord = words[wordIndex];
+            currentColor = colors[colorIndex];
+
+            wordElement.textContent = currentWord;
+            wordElement.style.color = currentColor;
+        }
+
+        function startTimer() {
+            interval = setInterval(() => {
+                if (timer > 0) {
+                    timer--;
+                    timerElement.textContent = `Time Left: ${timer}s`;
                 } else {
-                    tile.classList.add('wrong');
-                    result.textContent = 'Oops! That\'s not correct. Try again.';
-                    result.classList.remove('hidden');
+                    endGame();
                 }
+            }, 1000);
+        }
 
-                // Disable further clicks by setting pointer-events to none on all tiles
-                grid.querySelectorAll('.tile').forEach(t => t.style.pointerEvents = 'none');
+        function endGame() {
+            enableButtons(false);
+            resultElement.classList.remove('hidden');
+            resultElement.textContent = "Time's up! You failed to match the colors.";
+            resultElement.classList.add('show');
+        }
+
+        function enableButtons(enable) {
+            btnRed.disabled = !enable;
+            btnGreen.disabled = !enable;
+            btnBlue.disabled = !enable;
+        }
+
+        function checkAnswer(color) {
+            if (color === currentColor) {
+                resultElement.textContent = "Great job! Correct answer!";
+                resultElement.classList.add('show');
+                setTimeout(() => {
+                    loadNewWord();
+                    resultElement.classList.remove('show');
+                }, 1000);
+            } else {
+                wordElement.classList.add('incorrect');
+                setTimeout(() => {
+                    wordElement.classList.remove('incorrect');
+                }, 500);
+                resultElement.classList.remove('hidden');
+                resultElement.classList.add('show');
             }
-        });
+        }
+
+        btnRed.addEventListener('click', () => checkAnswer('red'));
+        btnGreen.addEventListener('click', () => checkAnswer('green'));
+        btnBlue.addEventListener('click', () => checkAnswer('blue'));
+
+        startGame(); // Start the game immediately when the page loads
     </script>
 </body>
 </html>
