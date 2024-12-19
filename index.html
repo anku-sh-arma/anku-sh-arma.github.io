@@ -3,189 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alien Invasion - Save the Planet!</title>
+    <title>Snake Game</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #0e0e0e;
-            color: #fff;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            flex-direction: column;
+            background-color: #282c34;
+            color: white;
         }
 
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            text-align: center;
-            font-family: 'Comic Sans MS', cursive;
-            color: #28a745;
+        canvas {
+            border: 2px solid #fff;
+            background-color: #000;
         }
 
-        .puzzle-container {
-            text-align: center;
-            background-color: #2f2f2f;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            width: 80%;
-            max-width: 600px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .tile {
-            background-color: #333;
-            border-radius: 10px;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.2s ease-in-out;
-        }
-
-        .tile:hover {
-            transform: scale(1.1);
-        }
-
-        .green {
-            background-color: #28a745;
-        }
-
-        .red {
-            background-color: #dc3545;
-        }
-
-        .blue {
-            background-color: #007bff;
-        }
-
-        .yellow {
-            background-color: #f1c40f;
-        }
-
-        .feedback {
+        .scoreboard {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
             font-size: 1.5rem;
+        }
+
+        .result {
+            font-size: 2rem;
             margin-top: 20px;
-            color: #f39c12;
+            text-align: center;
         }
-
-        .feedback.correct {
-            color: #28a745;
-        }
-
-        .feedback.incorrect {
-            color: #dc3545;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 20px;
-            background-color: #444;
-            border-radius: 10px;
-            margin-top: 20px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0;
-            background-color: #28a745;
-            border-radius: 10px;
-        }
-
-        .timer {
-            margin-top: 10px;
-            font-size: 1.2rem;
-        }
-
     </style>
 </head>
 <body>
-    <h1>Alien Invasion - Save the Planet!</h1>
-    <div class="puzzle-container">
-        <p class="feedback">Click on the green aliens to save the planet!</p>
-        <div class="grid">
-            <div class="tile green">Alien 1</div>
-            <div class="tile red">Alien 2</div>
-            <div class="tile blue">Alien 3</div>
-            <div class="tile yellow">Alien 4</div>
-            <div class="tile green">Alien 5</div>
-            <div class="tile red">Alien 6</div>
-            <div class="tile blue">Alien 7</div>
-            <div class="tile yellow">Alien 8</div>
-            <div class="tile green">Alien 9</div>
-            <div class="tile red">Alien 10</div>
-            <div class="tile blue">Alien 11</div>
-            <div class="tile yellow">Alien 12</div>
-        </div>
-        <div class="progress-bar-container">
-            <div class="progress-bar"></div>
-        </div>
-        <p class="timer">Time Left: <span id="time">30</span> seconds</p>
+    <div class="scoreboard">
+        Score: <span id="score">0</span> | Target: 100
     </div>
-
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div class="result hidden" id="result">You Win! Congratulations!</div>
     <script>
-        let correctClicks = 0;
-        let wrongClicks = 0;
-        let totalTime = 30;
-        let timerInterval;
-        const progressBar = document.querySelector('.progress-bar');
-        const feedback = document.querySelector('.feedback');
-        const timeDisplay = document.getElementById('time');
-        const tiles = document.querySelectorAll('.tile');
+        // Game settings
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const blockSize = 20; // Size of each block (snake and food)
+        const canvasSize = 400;
+        let snake = [{ x: 160, y: 200 }, { x: 140, y: 200 }, { x: 120, y: 200 }]; // Initial snake body
+        let food = generateFood(); // Initial food position
+        let direction = "RIGHT";
+        let score = 0;
+        let gameInterval;
+        let gameSpeed = 100; // 100 ms, controls snake speed
 
-        // Play sound on click
-        const clickSound = new Audio('https://www.soundjay.com/button/beep-07.wav');
-
-        // Timer countdown
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                totalTime--;
-                timeDisplay.textContent = totalTime;
-                if (totalTime <= 0) {
-                    clearInterval(timerInterval);
-                    feedback.textContent = 'Time\'s up! You saved the planet... or not!';
-                    feedback.style.color = '#f39c12';
-                    feedback.classList.remove('correct', 'incorrect');
-                }
-            }, 1000);
+        // Start the game
+        function startGame() {
+            gameInterval = setInterval(updateGame, gameSpeed);
+            document.addEventListener("keydown", changeDirection);
         }
 
-        function updateProgress() {
-            const progress = (correctClicks / (correctClicks + wrongClicks)) * 100;
-            progressBar.style.width = progress + '%';
+        // Update the game
+        function updateGame() {
+            moveSnake();
+            if (checkCollision()) {
+                gameOver();
+            }
+            if (checkFoodCollision()) {
+                score += 10; // Increase score by 10 points
+                document.getElementById("score").textContent = score;
+                if (score >= 100) {
+                    winGame();
+                }
+                food = generateFood(); // Re-generate food after eating
+            }
+            drawGame();
         }
 
-        // Handle tile clicks
-        tiles.forEach(tile => {
-            tile.addEventListener('click', (e) => {
-                clickSound.play();
-                if (tile.classList.contains('green')) {
-                    correctClicks++;
-                    feedback.textContent = `Correct! You saved the planet from the green aliens!`;
-                    feedback.classList.add('correct');
-                } else {
-                    wrongClicks++;
-                    feedback.textContent = `Oops! That alien was a threat! Try again.`;
-                    feedback.classList.add('incorrect');
-                }
+        // Move the snake
+        function moveSnake() {
+            let head = { x: snake[0].x, y: snake[0].y };
+            switch (direction) {
+                case "UP":
+                    head.y -= blockSize;
+                    break;
+                case "DOWN":
+                    head.y += blockSize;
+                    break;
+                case "LEFT":
+                    head.x -= blockSize;
+                    break;
+                case "RIGHT":
+                    head.x += blockSize;
+                    break;
+            }
+            snake.unshift(head); // Add new head to the front
+            snake.pop(); // Remove tail of the snake
+        }
 
-                updateProgress();
-            });
-        });
+        // Check if snake collided with the walls or itself
+        function checkCollision() {
+            let head = snake[0];
+            // Wall collision
+            if (head.x < 0 || head.x >= canvasSize || head.y < 0 || head.y >= canvasSize) {
+                return true;
+            }
+            // Self collision
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Check if snake eats the food
+        function checkFoodCollision() {
+            let head = snake[0];
+            if (head.x === food.x && head.y === food.y) {
+                snake.push({ x: food.x, y: food.y }); // Grow the snake
+                return true;
+            }
+            return false;
+        }
+
+        // Generate a random position for the food
+        function generateFood() {
+            let foodX = Math.floor(Math.random() * (canvasSize / blockSize)) * blockSize;
+            let foodY = Math.floor(Math.random() * (canvasSize / blockSize)) * blockSize;
+            return { x: foodX, y: foodY };
+        }
+
+        // Change the direction based on arrow keys
+        function changeDirection(event) {
+            if (event.key === "ArrowUp" && direction !== "DOWN") {
+                direction = "UP";
+            }
+            if (event.key === "ArrowDown" && direction !== "UP") {
+                direction = "DOWN";
+            }
+            if (event.key === "ArrowLeft" && direction !== "RIGHT") {
+                direction = "LEFT";
+            }
+            if (event.key === "ArrowRight" && direction !== "LEFT") {
+                direction = "RIGHT";
+            }
+        }
+
+        // Draw the snake, food, and scoreboard
+        function drawGame() {
+            ctx.clearRect(0, 0, canvasSize, canvasSize); // Clear the canvas
+            // Draw the snake
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = i === 0 ? "green" : "lime"; // Head is dark green, body is light green
+                ctx.fillRect(snake[i].x, snake[i].y, blockSize, blockSize);
+            }
+            // Draw the food
+            ctx.fillStyle = "red";
+            ctx.fillRect(food.x, food.y, blockSize, blockSize);
+        }
+
+        // Display game over screen
+        function gameOver() {
+            clearInterval(gameInterval);
+            document.removeEventListener("keydown", changeDirection);
+            document.getElementById("result").textContent = "Game Over! Try Again!";
+            document.getElementById("result").classList.remove("hidden");
+        }
+
+        // Display win screen
+        function winGame() {
+            clearInterval(gameInterval);
+            document.removeEventListener("keydown", changeDirection);
+            document.getElementById("result").textContent = "You Win! Congratulations!";
+            document.getElementById("result").classList.remove("hidden");
+        }
 
         // Start the game when the page loads
-        startTimer();
+        startGame();
     </script>
 </body>
 </html>
