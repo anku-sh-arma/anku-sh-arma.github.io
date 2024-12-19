@@ -50,6 +50,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: background-color 0.3s ease;
         }
 
         .tile.correct {
@@ -89,24 +90,27 @@
     </div>
 
     <script>
-        const tiles = document.querySelectorAll('.tile');
+        const grid = document.querySelector('.grid');
         const result = document.querySelector('.result');
 
-        tiles.forEach(tile => {
-            tile.addEventListener('click', () => {
+        grid.addEventListener('click', (event) => {
+            const tile = event.target;
+
+            // Check if the clicked element is a tile
+            if (tile.classList.contains('tile')) {
                 if (tile.dataset.value === '7') {
                     tile.classList.add('correct');
                     result.textContent = 'Congratulations! You solved the riddle!';
                     result.classList.remove('hidden');
                 } else {
                     tile.classList.add('wrong');
-                    result.textContent = 'Oops! That's not correct. Try again.';
+                    result.textContent = 'Oops! That\'s not correct. Try again.';
                     result.classList.remove('hidden');
                 }
 
-                // Disable further clicks
-                tiles.forEach(t => t.style.pointerEvents = 'none');
-            });
+                // Disable further clicks by setting pointer-events to none on all tiles
+                grid.querySelectorAll('.tile').forEach(t => t.style.pointerEvents = 'none');
+            }
         });
     </script>
 </body>
