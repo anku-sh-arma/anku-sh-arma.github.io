@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fix the Code - iOS Developer Puzzle</title>
+    <title>Alien Invasion - Save the Planet!</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            background-color: #0e0e0e;
             color: #fff;
             display: flex;
             justify-content: center;
@@ -18,135 +18,174 @@
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
             margin-bottom: 20px;
             text-align: center;
             font-family: 'Comic Sans MS', cursive;
+            color: #28a745;
         }
 
         .puzzle-container {
-            background-color: #1e1e1e;
+            text-align: center;
+            background-color: #2f2f2f;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
             width: 80%;
             max-width: 600px;
         }
 
-        .code {
-            font-size: 1.5rem;
-            background-color: #333;
-            padding: 20px;
-            border-radius: 8px;
-            color: #dcdcdc;
-            margin-bottom: 20px;
-            overflow: auto;
-            white-space: pre-wrap;
-            line-height: 1.6;
-            font-family: 'Courier New', monospace;
-        }
-
-        .options {
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
             margin-top: 20px;
         }
 
-        .btn {
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            background-color: #28a745;
-            color: white;
-            border: none;
+        .tile {
+            background-color: #333;
             border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin: 10px;
+            transition: transform 0.2s ease-in-out;
         }
 
-        .btn:hover {
-            background-color: #218838;
+        .tile:hover {
+            transform: scale(1.1);
         }
 
-        .btn:active {
-            transform: scale(0.95);
+        .green {
+            background-color: #28a745;
+        }
+
+        .red {
+            background-color: #dc3545;
+        }
+
+        .blue {
+            background-color: #007bff;
+        }
+
+        .yellow {
+            background-color: #f1c40f;
         }
 
         .feedback {
-            font-size: 1.2rem;
-            margin-top: 20px;
-            color: #f39c12;
-            display: none;
-        }
-
-        .result {
             font-size: 1.5rem;
             margin-top: 20px;
+            color: #f39c12;
         }
 
-        .hidden {
-            display: none;
+        .feedback.correct {
+            color: #28a745;
+        }
+
+        .feedback.incorrect {
+            color: #dc3545;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: #28a745;
+            border-radius: 10px;
+        }
+
+        .timer {
+            margin-top: 10px;
+            font-size: 1.2rem;
         }
 
     </style>
 </head>
 <body>
-    <h1>Fix the Code: iOS Developer Challenge</h1>
+    <h1>Alien Invasion - Save the Planet!</h1>
     <div class="puzzle-container">
-        <div class="code" id="codeSnippet">
-            // Swift function to calculate the square of a number
-            func calculateSquare(of number: Int) -> Int {
-                return number * number
-            }
+        <p class="feedback">Click on the green aliens to save the planet!</p>
+        <div class="grid">
+            <div class="tile green">Alien 1</div>
+            <div class="tile red">Alien 2</div>
+            <div class="tile blue">Alien 3</div>
+            <div class="tile yellow">Alien 4</div>
+            <div class="tile green">Alien 5</div>
+            <div class="tile red">Alien 6</div>
+            <div class="tile blue">Alien 7</div>
+            <div class="tile yellow">Alien 8</div>
+            <div class="tile green">Alien 9</div>
+            <div class="tile red">Alien 10</div>
+            <div class="tile blue">Alien 11</div>
+            <div class="tile yellow">Alien 12</div>
         </div>
-
-        <div class="options">
-            <button class="btn" data-answer="correct">Fix: Add missing return statement</button>
-            <button class="btn" data-answer="incorrect">Fix: Remove the return type</button>
-            <button class="btn" data-answer="incorrect">Fix: Add missing braces</button>
+        <div class="progress-bar-container">
+            <div class="progress-bar"></div>
         </div>
-
-        <div class="feedback" id="feedback">Oops! Try again, something's wrong.</div>
-        <div class="result hidden" id="result"></div>
+        <p class="timer">Time Left: <span id="time">30</span> seconds</p>
     </div>
 
     <script>
-        const codeSnippet = document.getElementById("codeSnippet");
-        const feedback = document.getElementById("feedback");
-        const result = document.getElementById("result");
-        const options = document.querySelectorAll(".btn");
+        let correctClicks = 0;
+        let wrongClicks = 0;
+        let totalTime = 30;
+        let timerInterval;
+        const progressBar = document.querySelector('.progress-bar');
+        const feedback = document.querySelector('.feedback');
+        const timeDisplay = document.getElementById('time');
+        const tiles = document.querySelectorAll('.tile');
 
-        // Correct answer
-        const correctAnswer = "correct";
+        // Play sound on click
+        const clickSound = new Audio('https://www.soundjay.com/button/beep-07.wav');
 
-        options.forEach(option => {
-            option.addEventListener("click", (e) => {
-                const answer = e.target.getAttribute("data-answer");
-
-                if (answer === correctAnswer) {
-                    feedback.style.display = "none";
-                    result.textContent = "Correct! The missing return statement was necessary.";
-                    result.classList.remove("hidden");
-                    codeSnippet.textContent = `
-                        // Swift function to calculate the square of a number
-                        func calculateSquare(of number: Int) -> Int {
-                            return number * number
-                        }
-                    `;
-                    result.style.color = "#28a745"; // Green for correct answer
-                } else {
-                    feedback.style.display = "block";
-                    result.classList.add("hidden");
-
-                    if (answer === "incorrect") {
-                        feedback.textContent = "Oops! Something went wrong. Try again!";
-                    } else {
-                        feedback.textContent = "Hmm, that's not it! Keep trying!";
-                    }
-
-                    feedback.style.color = "#dc3545"; // Red for incorrect answers
+        // Timer countdown
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                totalTime--;
+                timeDisplay.textContent = totalTime;
+                if (totalTime <= 0) {
+                    clearInterval(timerInterval);
+                    feedback.textContent = 'Time\'s up! You saved the planet... or not!';
+                    feedback.style.color = '#f39c12';
+                    feedback.classList.remove('correct', 'incorrect');
                 }
+            }, 1000);
+        }
+
+        function updateProgress() {
+            const progress = (correctClicks / (correctClicks + wrongClicks)) * 100;
+            progressBar.style.width = progress + '%';
+        }
+
+        // Handle tile clicks
+        tiles.forEach(tile => {
+            tile.addEventListener('click', (e) => {
+                clickSound.play();
+                if (tile.classList.contains('green')) {
+                    correctClicks++;
+                    feedback.textContent = `Correct! You saved the planet from the green aliens!`;
+                    feedback.classList.add('correct');
+                } else {
+                    wrongClicks++;
+                    feedback.textContent = `Oops! That alien was a threat! Try again.`;
+                    feedback.classList.add('incorrect');
+                }
+
+                updateProgress();
             });
         });
+
+        // Start the game when the page loads
+        startTimer();
     </script>
 </body>
 </html>
